@@ -1,0 +1,12 @@
+## Temporary files
+*~
+
+## Build and Debug auto-generated files and directories
+/build/
+compile_commands.json
+GPATH
+GRTAGS
+GTAGS
+.gdb_history
+.ccls-cache/
+gmon.out

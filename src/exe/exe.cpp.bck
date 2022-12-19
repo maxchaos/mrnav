@@ -1,0 +1,107 @@
+#include <mrnav/planner_6124e1a8685f/models/boost_geom_double.hpp>
+
+#include <cstring>
+#include <iostream>
+#include <tinyxml2.h>
+
+using Planner = mrnav::planner_6124e1a8685f::PlannerBGD;
+using GK = Planner::GeometryKernel;
+
+int
+main (int argc, char **argv)
+{
+  Planner::Problem problem{2};
+  Planner::Robot r1{1};
+  Planner::Robot r2{1};
+  Planner::Configuration conf_init{2}, conf_goal{2};
+  // conf_init[0] = GK::Point{1.5, 1.5};
+  // conf_init[1] = GK::Point{4.5, 4.5};
+  // conf_goal[0] = GK::Point{4.5, 4.5};
+  // conf_goal[1] = GK::Point{1.5, 1.5};
+  conf_init[0] = GK::Point{1.5, 1.5};
+  conf_init[1] = GK::Point{8.5, 8.5};
+  conf_goal[0] = GK::Point{8.5, 8.5};
+  conf_goal[1] = GK::Point{1.5, 1.5};
+  GK::Polygon outer{};
+  outer.append_vtx(GK::Point{0, 0});
+  outer.append_vtx(GK::Point{10, 0});
+  outer.append_vtx(GK::Point{10, 10});
+  outer.append_vtx(GK::Point{0, 10});
+  // outer.append_vtx(GK::Point{0, 0});
+  // outer.append_vtx(GK::Point{6, 0});
+  // outer.append_vtx(GK::Point{6, 6});
+  // outer.append_vtx(GK::Point{0, 6});
+  GK::PolygonRegion region{};
+  region.set_outer(outer);
+  GK::PolygonRegionSet ws{};
+  ws.append_region(region);
+  problem.set_ws(ws);
+  problem.set_robot(0, r1);
+  problem.set_robot(1, r2);
+  problem.set_conf_init(conf_init);
+  problem.set_conf_goal(conf_goal);
+  Planner::PlanningParameters params{};
+  params.minimum_slice_size = 0.1;
+  params.heuristic_sort_admissible_first = false;
+  params.heuristic_admissible_bonus = 0.7;
+  Planner planner{problem, params};
+  planner.initialize_hierarchy();
+  planner.initialize_ccells_frontier();
+  planner.initialize_ccinit();
+  planner.initialize_ccgoal();
+  planner.initialize_path();
+  tinyxml2::XMLDocument xml_doc_init{};
+  auto xml_planner_init = planner.to_xml_element(&xml_doc_init);
+  xml_doc_init.InsertFirstChild(xml_planner_init);
+  xml_doc_init.SaveFile("planner-init.xml");
+  std::cout << "Amount of Compound Cells: " <<
+    planner.get_ccell_amount() << std::endl;
+  std::cout << "Size of Frontier: " <<
+    planner.get_frontier_size() << std::endl;
+  // tinyxml2::XMLDocument xml_doc_hier{};
+  // auto xml_hier = planner.hierarchy_to_xml_element(&xml_doc_hier);
+  // xml_doc_hier.InsertFirstChild(xml_hier);
+  // xml_doc_hier.SaveFile("hierarchy.xml");
+  // tinyxml2::XMLDocument xml_doc_paths{};
+  // auto xml_paths = planner.path_to_xml_element(&xml_doc_paths);
+  // xml_doc_paths.InsertFirstChild(xml_paths);
+  // xml_doc_paths.SaveFile("path.xml");
+  // tinyxml2::XMLDocument xml_doc_cells{};
+  // auto xml_cells = planner.ccells_to_xml_element(&xml_doc_cells);
+  // xml_doc_cells.InsertFirstChild(xml_cells);
+  // xml_doc_cells.SaveFile("cells.xml");
+  // planner.find_apath();
+  tinyxml2::XMLDocument xml_doc0{};
+  auto xml_planner0 = planner.to_xml_element(&xml_doc0);
+  xml_doc0.InsertFirstChild(xml_planner0);
+  xml_doc0.SaveFile("planner-0.xml");
+  std::cout << "Amount of Compound Cells: " <<
+    planner.get_ccell_amount() << std::endl;
+  std::cout << "Size of Frontier: " <<
+    planner.get_frontier_size() << std::endl;
+  // for(size_t k = 1; k < 3; k++)
+  //   {
+  //     planner.find_apath_step();
+  //     tinyxml2::XMLDocument xml_doc{};
+  //     auto xml_planner = planner.to_xml_element(&xml_doc);
+  //     xml_doc.InsertFirstChild(xml_planner);
+  //     std::stringstream fmt; fmt << "planner-" << k << ".xml";
+  //     xml_doc.SaveFile(fmt.str().c_str());
+  //     std::cout << "Amount of Compound Cells: " <<
+  //       planner.get_ccell_amount() << std::endl;
+  //     std::cout << "Size of Frontier: " <<
+  //       planner.get_frontier_size() << std::endl;
+  //   }
+  for(size_t k = 1; k < 100; k++)
+    {
+      planner.find_apath_step();
+    }
+  tinyxml2::XMLDocument xml_doc{};
+  auto xml_planner = planner.to_xml_element(&xml_doc);
+  xml_doc.InsertFirstChild(xml_planner);
+  xml_doc.SaveFile("planner-end.xml");
+  std::cout << "Amount of Compound Cells: " <<
+    planner.get_ccell_amount() << std::endl;
+  std::cout << "Size of Frontier: " <<
+    planner.get_frontier_size() << std::endl;
+}
